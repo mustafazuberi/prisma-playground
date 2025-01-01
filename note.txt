@@ -1,0 +1,205 @@
+************LEARNING PRISMA************
+
+1. Install Prisma as a development dependency:
+
+   npm i prisma --save-dev
+
+2. Initialize Prisma:
+
+   npx prisma init
+
+3. Initialize Prisma with a specific datasource provider (SQLite for development and PostgreSQL for production):
+
+   npx prisma init --datasource-provider sqlite
+
+4. Push schema changes to the database:
+
+   npx prisma db push
+
+   - As a beginner, we often use this command to directly push our schema changes to the database.
+   - If we're using this command for the first time and don't have a database, it will actually create a database for us.
+   - Another thing it does is generate the Prisma client, which we later use to perform database operations in our app (e.g., prisma.post.findMany()). Here, prisma refers to the Prisma client generated when running this command.
+
+5. How can we see the database created by running the "npx prisma db push" command?
+
+   - Since we're using SQLite for development and the "npx prisma db push" command has created a database for us, we should now have a file named prisma/dev.db in our project.
+   - If we open this file, we will have access to the database, but we can't view it directly in the editor. So, how can we actually see the database?
+
+   **Answer:** Prisma helps us with that as well. We can run the following command to open a UI that allows us to see our database:
+
+   npx prisma studio
+
+   This will open a user interface where we can view and interact with our database.
+
+
+6. Setting up Prisma Client for Database Operations:
+
+   To perform database operations like `prisma.post.findMany()`, you need to set up Prisma Client. Here, "prisma" refers to the Prisma Client instance.
+
+   For best practices, you can refer to the official documentation link to properly set up Prisma Client. If you use the standard technique like `new PrismaClient()`, it will create an instance every time. The best practice is to only create the instance if it’s not already available.
+
+   Documentation Link:
+   https://www.prisma.io/docs/orm/more/help-and-troubleshooting/help-articles/nextjs-prisma-client-dev-practices
+
+
+
+7. Handling Schema Changes:
+
+   For example, if you’ve pushed your database and then changed your Prisma model, what should you do?
+
+   If you do nothing, your schema won’t be updated in the database. To sync your database with your updated Prisma models, you need to run the following command again:
+
+   ```bash
+   npx prisma db push
+Impact of this command:
+
+It will update your database and sync it with the updated Prisma schema.
+It will also delete old data and update the Prisma Client.
+
+If you don’t see the updated database, try restarting Prisma Studio. Sometimes, you may need to restart the dev server for changes to reflect. If you see errors like:
+EPERM: operation not permitted, rename 'C:\Users\admin\Desktop\App Sphere\prisma-playground\node_modules\.prisma\client\query_engine-windows.dll.node.tmp10632' -> 'C:\Users\admin\Desktop\App Sphere\prisma-playground\node_modules\.prisma\client\query_engine-windows.dll.node'
+
+You can delete the .prisma directory from your node_modules folder and run the command again. This should resolve the issue.
+
+
+
+
+8 cuid():
+
+This function adds a default unique string ID, similar to how Prisma has auto-increment for integer IDs.
+Example usage:
+model Post {
+    id        String   @id @default(cuid())
+}
+
+
+
+
+9 @unique:
+
+If you want to make any field unique, you can use the @unique directive.
+
+Example:
+model Post {
+    slug      String   @unique
+}
+
+
+10 @@unique:
+
+If you want to make multiple fields unique, you can use @@unique. For example, if you want title, slug, and username to all be unique together, you can define them as follows:
+
+Example:
+model Post {
+    userName     String 
+    slug         String   
+    title        String
+
+    @@unique([userName, title, slug])
+}
+
+
+
+
+11 @map:
+
+If you want a field to be in camelCase in your app but in snake_case in your database, you can use @map.
+
+Example:
+model Post {
+    createdAt DateTime @default(now())  @map("created_at")
+}
+
+
+
+12 @@map
+Similarly, if you want the database table name to be different from the model name in your app, you can use @@map.
+
+Example:
+model Post {
+    createdAt DateTime @default(now())  @map("created_at")
+    @@map("posts")
+}
+
+
+
+13. `@@index`:
+
+As our data grows and becomes larger, queries might start to feel slow. The best practice to improve this is to add an index to cover your common data access patterns.
+
+Understanding an index in terms of databases is similar to an index in a book. In a book, we might have an index at the back that organizes topics and associates them with page numbers. This allows us to quickly find the topic we are looking for.
+
+The same concept applies to databases. An index is used to optimize access patterns, essentially creating a map that allows the database to quickly and easily locate and access the relevant data.
+
+
+
+
+One-to-Many Relationships:
+
+A good example of a one-to-many relationship is that a user can have many posts, but each post can only belong to one user.
+
+In database terms, this means that for each user, multiple posts can be associated with them, but every post is linked to just one specific user.
+
+
+Many-to-Many Relationship: A good example of a many-to-many relationship is that a student can enroll in many courses, and each course can have many students.
+
+Example:
+
+A student (like "Sarah") can enroll in many courses (Math, English, Science), and each of those courses can have many students enrolled.
+
+
+
+One-to-One Relationship: A good example of a one-to-one relationship is that each user can have one profile, and each profile belongs to only one user.
+
+Example:
+
+A user (like "Jane") has one profile, and that profile belongs only to Jane. No other user can share the same profile.
+
+
+
+
+
+
+
+Understanding Primary & Foreign Keys
+
+Foreign Keys are part of what makes a relational database relational by creating clear relationships 
+between tables.
+But more importantly, foreign keys help us ensure that all of the data entering our database is 
+consistent and valid.
+For example, we have a fictional bookstore database with three tables: users, orders, and books.
+
+Users table
+user_id | email | name
+10 | abc@example.com | Sadio
+11 | mohammed@example.com | Mohammed
+12 | rinsola@example.com | Rinsola
+13 | xyz@example.com | Amalio
+
+Orders table
+order_no | user_id | product_sku
+93 | 11 | 123
+94 | 12 | 789
+95 | 13 | 789
+96 | 14 | 101
+
+Books table
+product_sku | title | price
+123 | Aurera | 15
+456 | Blind Lake | 10
+789 | The Sparrow | 25
+101 | Invisible Planets | 15
+
+Each table has one column with a unique identifier:
+"user_id" for the users table,
+"order_no" for the orders table,
+"product_sku" for the books table.
+
+These are the primary keys. Primary keys are like ID numbers, uniquely identifying you, even if someone else has the same name as you or shares the same mailing address.
+A table’s primary key allows the database to identify the unique row, even if other columns in that row don’t have unique values.
+Every table in an SQL database must have a primary key.
+
+
+Foreign keys are like connectors that link one table to another by referring to a unique value in the other table. They make sure that the data stays correct and related.
+For example, in the orders table, the user_id is a foreign key that links to the user_id in the users table, ensuring that every order is associated with a valid user.
+
