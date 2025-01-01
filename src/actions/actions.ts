@@ -21,8 +21,14 @@ export async function createPost(formData: FormData): Promise<void> {
             content: formData.get("content") as string,
             slug: generateSlugByTitle(formData.get("title") as string),
             author: {
-                connect: {
-                    email: "mustafazuberi986@gmail.com"
+                connectOrCreate: {
+                    where: {
+                        email: "mustafazuberi986@gmail.com"
+                    },
+                    create: {
+                         email: "mustafazuberi986@gmail.com",
+                         hashedPassword: "asdlaslfaslfnasnflas",
+                    }
                 }
             }
         }
