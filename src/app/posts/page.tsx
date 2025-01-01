@@ -3,13 +3,16 @@ import Link from "next/link";
 import { createPost } from "@/actions/actions";
 
 const PostsPage = async () => {
-  const posts = await prisma.post.findMany({ take: 10 });
+    const user = await prisma.user.findUnique({
+        where: { email: "mustafazuberi986@gmail.com" },
+        include: { posts: true }, 
+    });
 
   return (
     <main className="flex flex-col items-center gap-y-5 pt-25 text-center">
-      <h1 className='text-3xl font-semibold'>All Posts {`(${posts.length})`}</h1>
+      <h1 className='text-3xl font-semibold'>All Posts {`(${user?.posts.length})`}</h1>
       <ul className='border-t border-b border-black/10 py-5 leading-8'>
-      {posts.map((post) => (
+      {user?.posts.map((post) => (
         <li key={post.id} className="flex items-center justify-between px-5">
          <Link href={`/posts/${post.slug}`}>
          {post.title}
